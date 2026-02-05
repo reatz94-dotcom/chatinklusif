@@ -1,18 +1,27 @@
 import streamlit as st
 import google.generativeai as genai
+import os
 
-# Setup API
-genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
-model = genai.GenerativeModel('gemini-3-flash-preview') # Sesuai gambar 2 kamu
+# Mengambil API KEY dari Secrets yang tadi kita isi
+api_key = st.secrets["API_KEY"]
+genai.configure(api_key=api_key)
+model = genai.GenerativeModel('gemini-1.5-flash')
 
-st.title("🤖 Chatbot Guru Inklusi (UDL)")
-prompt = st.chat_input("Tanyakan strategi UDL...")
+st.title("Chatbot UDL Inklusi")
 
-if prompt:
+if "messages" not in st.session_state:
+    st.session_state.messages = []
+
+for message in st.session_state.messages:
+    with st.chat_message(message["role"]):
+        st.markdown(message["content"])
+
+if prompt := st.chat_input("Apa tantangan di kelas Anda?"):
+    st.session_state.messages.append({"role": "user", "content": prompt})
     with st.chat_message("user"):
-        st.write(prompt)
-    
+        st.markdown(prompt)
+
     response = model.generate_content(prompt)
-    
     with st.chat_message("assistant"):
-        st.write(response.text)
+        st.markdown(response.text)
+        st.session_state.messages.append({"role": "assistant", "content": response.text})
